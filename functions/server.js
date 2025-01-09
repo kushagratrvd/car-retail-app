@@ -7,9 +7,11 @@ const { userRoutes } = require('./routes/userRoutes');
 
 const app = express();
 
+// Enable CORS
 app.use(cors());
 app.use(express.json());
 
+// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -17,14 +19,16 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('Connected to MongoDB Atlas'))
 .catch((err) => console.error('MongoDB connection error:', err));
 
-// Use routes
-app.use('/.netlify/functions/api/cars', carRoutes);
-app.use('/.netlify/functions/api/users', userRoutes);
+// Remove the /.netlify/functions/api prefix from routes
+app.use('/users', userRoutes);
+app.use('/cars', carRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('Server Error:', err);
+  res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
 
+// Export the serverless handler
 module.exports.handler = serverless(app);
+

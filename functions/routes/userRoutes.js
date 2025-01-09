@@ -7,15 +7,18 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
+    console.log('Register request received:', req.body);
     const { email, password, isAdmin } = req.body;
 
     let user = await User.findOne({ email });
     if (user) {
+      console.log('User already exists:', email);
       return res.status(400).json({ message: 'User already exists' });
     }
 
     user = new User({ email, password, isAdmin });
     await user.save();
+    console.log('New user created:', email);
 
     const token = jwt.sign(
       { userId: user._id, isAdmin: user.isAdmin },
@@ -33,10 +36,12 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
+    console.log('Login request received:', req.body);
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
+      console.log('Invalid login attempt for:', email);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
@@ -46,6 +51,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    console.log('Successful login for:', email);
     res.json({ token, isAdmin: user.isAdmin });
   } catch (error) {
     console.error('Login error:', error);
@@ -54,3 +60,4 @@ router.post('/login', async (req, res) => {
 });
 
 module.exports = { userRoutes: router };
+
