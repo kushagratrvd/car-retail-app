@@ -1,18 +1,25 @@
-import React, { useContext, useState } from 'react';
-import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
-import { CarsContext } from '../context/CarsContext.jsx';
+import React, { useContext, useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { CarsContext } from '../context/CarsContext';
 import CarCard from './CarCard';
 
 const AdminDashboard = () => {
-  const { cars, addCar, deleteCar } = useContext(CarsContext);
+  const { cars, loading, error, addCar, deleteCar } = useContext(CarsContext);
   const [newCar, setNewCar] = useState({
     name: '',
     description: '',
     price: '',
     image: ''
   });
-
   const [alert, setAlert] = useState({ show: false, message: '', variant: 'success' });
+
+  if (!localStorage.getItem('token')) {
+    return (
+      <Container>
+        <Alert variant="danger">Please log in to access the admin dashboard.</Alert>
+      </Container>
+    );
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -71,6 +78,26 @@ const AdminDashboard = () => {
     }
     setTimeout(() => setAlert({ show: false }), 3000);
   };
+
+  if (loading) {
+    return (
+      <Container className="text-center py-5">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="py-5">
+        <Alert variant="danger">
+          Error loading cars: {error}
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-5">
@@ -150,8 +177,8 @@ const AdminDashboard = () => {
         </Col>
       </Row>
       <Row xs={1} md={2} lg={3} className="g-4">
-        {cars.map((car) => (
-          <Col key={car._id || car.id}>
+        {Array.isArray(cars) && cars.map((car) => (
+          <Col key={car._id}>
             <CarCard
               car={car}
               isAdmin={true}
@@ -165,4 +192,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
