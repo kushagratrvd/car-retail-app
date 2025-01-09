@@ -52,5 +52,5 @@ router.delete('/:id', adminAuth, async (req, res) => {
   }
 });
 
-export const carRoutes = router;
+export { router as carRoutes };
 

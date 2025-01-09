@@ -1,9 +1,9 @@
-const express = require('express');
-const serverless = require('serverless-http');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const { carRoutes } = require('./routes/carRoutes');
-const { userRoutes } = require('./routes/userRoutes');
+import express from 'express';
+import { createHandler } from './utils/handler.js';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import { carRoutes } from './routes/carRoutes.js';
+import { userRoutes } from './routes/userRoutes.js';
 
 const app = express();
 
@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('Connected to MongoDB Atlas'))
 .catch((err) => console.error('MongoDB connection error:', err));
 
-// Remove the /.netlify/functions/api prefix from routes
+// Routes
 app.use('/users', userRoutes);
 app.use('/cars', carRoutes);
 
@@ -29,6 +29,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
 
-// Export the serverless handler
-module.exports.handler = serverless(app);
+// Export the handler
+export const handler = createHandler(app);
 
