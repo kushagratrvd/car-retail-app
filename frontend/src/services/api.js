@@ -1,19 +1,25 @@
 import axios from 'axios';
 
-// Update API_URL to include the complete Netlify function path
+// Update API_URL to use the correct Netlify function path
 const API_URL = '/.netlify/functions/api';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 });
 
 // Add request interceptor for debugging
 api.interceptors.request.use(
   (config) => {
-    console.log('API Request:', config.method.toUpperCase(), config.url);
+    console.log('API Request:', {
+      method: config.method.toUpperCase(),
+      url: config.url,
+      data: config.data,
+      headers: config.headers
+    });
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -29,14 +35,19 @@ api.interceptors.request.use(
 // Add response interceptor for debugging
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.data);
+    console.log('API Response:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    });
     return response;
   },
   (error) => {
     console.error('API Error:', {
       status: error.response?.status,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      config: error.config
     });
     return Promise.reject(error);
   }

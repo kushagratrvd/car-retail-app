@@ -7,8 +7,14 @@ import { userRoutes } from './routes/userRoutes.js';
 
 const app = express();
 
-// Enable CORS
-app.use(cors());
+// Enable CORS with specific options
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Connect to MongoDB
@@ -19,14 +25,24 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('Connected to MongoDB Atlas'))
 .catch((err) => console.error('MongoDB connection error:', err));
 
-// Routes
-app.use('/users', userRoutes);
-app.use('/cars', carRoutes);
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`, req.body);
+  next();
+});
+
+// Routes - Note: paths should match the frontend API calls
+app.use('/.netlify/functions/api/users', userRoutes);
+app.use('/.netlify/functions/api/cars', carRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server Error:', err);
-  res.status(500).json({ message: 'Something went wrong!', error: err.message });
+  res.status(500).json({ 
+    message: 'Something went wrong!', 
+    error: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 // Export the handler
