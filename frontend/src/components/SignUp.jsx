@@ -17,7 +17,8 @@ const SignUp = () => {
       localStorage.setItem('token', response.data.token);
       navigate(isAdmin ? '/admin' : '/user');
     } catch (error) {
-      setError(error.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', error);
+      setError(error.response?.data?.message || 'Registration failed. Please try again.');
     }
   };
 
@@ -70,4 +71,3 @@ const SignUp = () => {
 };
 
 export default SignUp;
-

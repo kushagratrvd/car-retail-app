@@ -7,11 +7,9 @@ const { userRoutes } = require('./routes/userRoutes');
 
 const app = express();
 
-// Enable CORS for all routes
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -29,5 +27,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Export the serverless function
 module.exports.handler = serverless(app);

@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Update the API_URL to include the full Netlify function path
 const API_URL = '/.netlify/functions/api';
 
 const api = axios.create({

@@ -1,6 +1,6 @@
-import express from 'express';
-import jwt from 'jsonwebtoken';
-import { User } from '../models/User.js';
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const { User } = require('../models/User');
 
 const router = express.Router();
 
@@ -25,7 +25,8 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ token, isAdmin: user.isAdmin });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Registration failed', error: error.message });
   }
 });
 
@@ -47,9 +48,9 @@ router.post('/login', async (req, res) => {
 
     res.json({ token, isAdmin: user.isAdmin });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Login failed', error: error.message });
   }
 });
 
-export const userRoutes = router;
-
+module.exports = { userRoutes: router };
