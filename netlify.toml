@@ -4,7 +4,7 @@
   publish = "frontend/dist"
 
 [[redirects]]
-  from = "/.netlify/functions/api/*"
+  from = "/.netlify/functions/server/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
   force = true
@@ -18,15 +18,7 @@
   directory = "functions"
   node_bundler = "esbuild"
   external_node_modules = ["serverless-http", "mongoose", "express"]
-  included_files = ["functions/**/*"]
 
 [build.environment]
   NODE_VERSION = "18"
-
-[dev]
-  framework = "#custom"
-  command = "npm run dev"
-  targetPort = 5173
-  port = 8888
-  publish = "frontend/dist"
 
