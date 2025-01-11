@@ -27,13 +27,27 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Debug middleware
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, req.body);
+  console.log('Incoming request:', {
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    headers: req.headers
+  });
   next();
 });
 
-// Routes - Note: paths should match the frontend API calls
-app.use('/.netlify/functions/api/users', userRoutes);
-app.use('/.netlify/functions/api/cars', carRoutes);
+// Base API path
+const apiRouter = express.Router();
+apiRouter.use('/cars', carRoutes);
+apiRouter.use('/users', userRoutes);
+
+// Mount API router at the Netlify function path
+app.use('/.netlify/functions/api', apiRouter);
+
+// API health check endpoint
+app.get('/.netlify/functions/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

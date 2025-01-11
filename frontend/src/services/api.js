@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Update API_URL to use the correct Netlify function path
 const API_URL = '/.netlify/functions/api';
 
 const api = axios.create({
@@ -16,7 +15,7 @@ api.interceptors.request.use(
   (config) => {
     console.log('API Request:', {
       method: config.method.toUpperCase(),
-      url: config.url,
+      url: `${config.baseURL}${config.url}`,
       data: config.data,
       headers: config.headers
     });
@@ -53,9 +52,13 @@ api.interceptors.response.use(
   }
 );
 
+// API endpoints
 export const login = (credentials) => api.post('/users/login', credentials);
 export const register = (userData) => api.post('/users/register', userData);
 export const getCars = () => api.get('/cars');
 export const addCar = (carData) => api.post('/cars', carData);
 export const deleteCar = (id) => api.delete(`/cars/${id}`);
+
+// Health check
+export const checkHealth = () => api.get('/health');
 

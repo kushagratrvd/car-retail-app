@@ -17,7 +17,7 @@
 [functions]
   directory = "functions"
   node_bundler = "esbuild"
-  external_node_modules = ["serverless-http"]
+  external_node_modules = ["serverless-http", "mongoose", "express"]
   included_files = ["functions/**/*"]
 
 [build.environment]
