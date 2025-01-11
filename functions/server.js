@@ -1,9 +1,9 @@
 import express from 'express';
-import { createHandler } from './utils/handler.js';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import { carRoutes } from './routes/carRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
+import serverless from 'serverless-http';
 
 const app = express();
 
@@ -27,38 +27,29 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Debug middleware
 app.use((req, res, next) => {
-  console.log('Incoming request:', {
+  console.log('Request received:', {
     method: req.method,
     path: req.path,
-    body: req.body,
-    headers: req.headers
+    body: req.body
   });
   next();
 });
 
-// Base API path
-const apiRouter = express.Router();
-apiRouter.use('/cars', carRoutes);
-apiRouter.use('/users', userRoutes);
+// Mount routes directly (no additional nesting)
+app.use('/users', userRoutes);
+app.use('/cars', carRoutes);
 
-// Mount API router at the Netlify function path
-app.use('/.netlify/functions/api', apiRouter);
-
-// API health check endpoint
-app.get('/.netlify/functions/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.json({ message: 'API is working' });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server Error:', err);
-  res.status(500).json({ 
-    message: 'Something went wrong!', 
-    error: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
+  res.status(500).json({ message: err.message });
 });
 
 // Export the handler
-export const handler = createHandler(app);
+export const handler = serverless(app);
 

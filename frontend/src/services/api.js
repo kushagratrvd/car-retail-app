@@ -1,13 +1,19 @@
 import axios from 'axios';
 
-const API_URL = '/.netlify/functions/api';
+// Get the current domain
+const domain = window.location.hostname;
+const isLocalhost = domain.includes('localhost') || domain.includes('127.0.0.1');
+
+// Set the API URL based on environment
+const API_URL = isLocalhost 
+  ? 'http://localhost:8888/.netlify/functions/server'
+  : '/.netlify/functions/server';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  },
-  withCredentials: true
+  }
 });
 
 // Add request interceptor for debugging
@@ -16,8 +22,7 @@ api.interceptors.request.use(
     console.log('API Request:', {
       method: config.method.toUpperCase(),
       url: `${config.baseURL}${config.url}`,
-      data: config.data,
-      headers: config.headers
+      data: config.data
     });
     const token = localStorage.getItem('token');
     if (token) {
@@ -36,29 +41,22 @@ api.interceptors.response.use(
   (response) => {
     console.log('API Response:', {
       status: response.status,
-      data: response.data,
-      headers: response.headers
+      data: response.data
     });
     return response;
   },
   (error) => {
     console.error('API Error:', {
-      status: error.response?.status,
-      data: error.response?.data,
       message: error.message,
-      config: error.config
+      response: error.response?.data
     });
     return Promise.reject(error);
   }
 );
 
-// API endpoints
 export const login = (credentials) => api.post('/users/login', credentials);
 export const register = (userData) => api.post('/users/register', userData);
 export const getCars = () => api.get('/cars');
 export const addCar = (carData) => api.post('/cars', carData);
 export const deleteCar = (id) => api.delete(`/cars/${id}`);
-
-// Health check
-export const checkHealth = () => api.get('/health');
 
