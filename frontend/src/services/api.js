@@ -1,13 +1,7 @@
 import axios from 'axios';
 
-// Get the current domain
-const domain = window.location.hostname;
-const isLocalhost = domain.includes('localhost') || domain.includes('127.0.0.1');
-
-// Set the API URL based on environment
-const API_URL = isLocalhost 
-  ? 'http://localhost:8888/.netlify/functions/server'
-  : '/.netlify/functions/server';
+// Update the API URL to match the Netlify function name
+const API_URL = '/.netlify/functions/server';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -16,39 +10,27 @@ const api = axios.create({
   }
 });
 
-// Add request interceptor for debugging
+// Request interceptor with better logging
 api.interceptors.request.use(
   (config) => {
-    console.log('API Request:', {
-      method: config.method.toUpperCase(),
-      url: `${config.baseURL}${config.url}`,
+    console.log('Sending Request:', {
+      url: config.url,
+      method: config.method,
       data: config.data
     });
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
-  (error) => {
-    console.error('Request Error:', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Add response interceptor for debugging
+// Response interceptor with better error handling
 api.interceptors.response.use(
-  (response) => {
-    console.log('API Response:', {
-      status: response.status,
-      data: response.data
-    });
-    return response;
-  },
+  (response) => response,
   (error) => {
     console.error('API Error:', {
-      message: error.message,
-      response: error.response?.data
+      endpoint: error.config?.url,
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message
     });
     return Promise.reject(error);
   }
@@ -59,4 +41,3 @@ export const register = (userData) => api.post('/users/register', userData);
 export const getCars = () => api.get('/cars');
 export const addCar = (carData) => api.post('/cars', carData);
 export const deleteCar = (id) => api.delete(`/cars/${id}`);
-
