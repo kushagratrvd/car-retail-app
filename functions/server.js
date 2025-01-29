@@ -1,9 +1,9 @@
-const express = require("express")
-const serverless = require("serverless-http")
-const mongoose = require("mongoose")
-const cors = require("cors")
-const { carRoutes } = require("./routes/carRoutes.js")
-const { userRoutes } = require("./routes/userRoutes.js")
+import express from "express"
+import serverless from "serverless-http"
+import mongoose from "mongoose"
+import cors from "cors"
+import { carRoutes } from "./routes/carRoutes.js"
+import { userRoutes } from "./routes/userRoutes.js"
 
 const app = express()
 
@@ -32,13 +32,15 @@ app.use(express.json())
 
 // MongoDB connection
 console.log("Connecting to MongoDB...")
-mongoose
-  .connect(process.env.MONGODB_URI, {
+try {
+  await mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("MongoDB Connected Successfully"))
-  .catch((error) => console.error("MongoDB Connection Error:", error))
+  console.log("MongoDB Connected Successfully")
+} catch (error) {
+  console.error("MongoDB Connection Error:", error)
+}
 
 // Health check endpoint
 app.get("/", (req, res) => {
@@ -67,5 +69,7 @@ app.use((err, req, res, next) => {
 })
 
 // Export handler with proper configuration
-module.exports.handler = serverless(app)
+export const handler = serverless(app, {
+  basePath: "/.netlify/functions/server",
+})
 

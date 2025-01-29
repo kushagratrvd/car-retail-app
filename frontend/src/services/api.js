@@ -1,16 +1,10 @@
 import axios from "axios"
 
-// Get the base URL based on environment
-const getBaseUrl = () => {
-  if (window.location.hostname.includes("localhost")) {
-    return "http://localhost:8888/.netlify/functions/server"
-  }
-  // For production, use relative path
-  return "/.netlify/functions/server"
-}
+// Update the API URL to match the Netlify function name
+const API_URL = '/.netlify/functions/server';
 
 const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
