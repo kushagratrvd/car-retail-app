@@ -7,46 +7,46 @@ import { userRoutes } from "./routes/userRoutes.js"
 
 const app = express()
 
-// Detailed request logging
+// Debug logging
 app.use((req, res, next) => {
-  console.log("Incoming request:", {
+  console.log("Request received:", {
     method: req.method,
     path: req.path,
-    body: req.body,
     headers: req.headers,
-    url: req.url,
   })
   next()
 })
 
-// CORS configuration
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-)
-
+// CORS and JSON parsing
+app.use(cors())
 app.use(express.json())
 
-// MongoDB connection
-console.log("Connecting to MongoDB...")
+// MongoDB connection with detailed logging
+console.log("Attempting MongoDB connection...")
 try {
   await mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  console.log("MongoDB Connected Successfully")
+  console.log("MongoDB connected successfully")
 } catch (error) {
-  console.error("MongoDB Connection Error:", error)
+  console.error("MongoDB connection failed:", error.message)
 }
 
-// Health check endpoint
+// Basic test route at the root
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
     message: "Server is running",
+    mongoDbStatus: mongoose.connection.readyState,
+  })
+})
+
+// Test route
+app.get("/test", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Test endpoint reached",
     mongoDbStatus: mongoose.connection.readyState,
   })
 })
@@ -57,18 +57,14 @@ app.use("/cars", carRoutes)
 
 // Error handling
 app.use((err, req, res, next) => {
-  console.error("Server Error:", {
-    path: req.path,
-    error: err.message,
-    stack: err.stack,
-  })
+  console.error("Server Error:", err)
   res.status(500).json({
     message: err.message || "Internal server error",
     path: req.path,
   })
 })
 
-// Export handler with proper configuration
+// Export the handler with path stripping
 export const handler = serverless(app, {
   basePath: "/.netlify/functions/server",
 })

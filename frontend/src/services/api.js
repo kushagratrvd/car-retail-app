@@ -1,7 +1,11 @@
 import axios from "axios"
 
-// Update the API URL to match the Netlify function name
-const API_URL = '/.netlify/functions/server';
+// Get the current domain
+const domain = window.location.hostname
+const isLocalhost = domain.includes("localhost") || domain.includes("127.0.0.1")
+
+// Set the API URL based on environment
+const API_URL = isLocalhost ? "http://localhost:8888/.netlify/functions/server" : "/.netlify/functions/server"
 
 const api = axios.create({
   baseURL: API_URL,
@@ -10,14 +14,13 @@ const api = axios.create({
   },
 })
 
-// Enhanced request logging
+// Request interceptor with detailed logging
 api.interceptors.request.use(
   (config) => {
-    console.log("API Request:", {
+    console.log("Sending Request:", {
       url: `${config.baseURL}${config.url}`,
       method: config.method,
       data: config.data,
-      headers: config.headers,
     })
     const token = localStorage.getItem("token")
     if (token) {
@@ -31,7 +34,7 @@ api.interceptors.request.use(
   },
 )
 
-// Enhanced response logging
+// Response interceptor with error handling
 api.interceptors.response.use(
   (response) => {
     console.log("API Response:", {
@@ -46,7 +49,6 @@ api.interceptors.response.use(
       url: error.config?.url,
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
-      data: error.response?.data,
     })
     return Promise.reject(error)
   },

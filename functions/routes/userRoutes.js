@@ -1,6 +1,6 @@
-import express from "express"
-import jwt from "jsonwebtoken"
-import { User } from "../models/User.js"
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const { User } = require('../models/User');
 
 const router = express.Router()
 
@@ -43,5 +43,5 @@ router.post("/register", async (req, res) => {
 
 // Other routes remain the same...
 
-export { router as userRoutes }
+module.exports = { userRoutes: router };
 
