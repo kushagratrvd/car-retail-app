@@ -7,44 +7,46 @@ import { userRoutes } from "./routes/userRoutes.js"
 
 const app = express()
 
-// Enhanced logging middleware
+// Debug logging
 app.use((req, res, next) => {
   console.log("Request received:", {
     method: req.method,
     path: req.path,
-    body: req.body,
     headers: req.headers,
   })
   next()
 })
 
+// CORS and JSON parsing
 app.use(cors())
 app.use(express.json())
 
-// Connect to MongoDB with enhanced logging
-console.log("Attempting to connect to MongoDB...")
-mongoose
-  .connect(process.env.MONGODB_URI, {
+// MongoDB connection with detailed logging
+console.log("Attempting MongoDB connection...")
+try {
+  await mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => {
-    console.log("Successfully connected to MongoDB Atlas")
-    // Log the connection status
-    console.log("MongoDB connection state:", mongoose.connection.readyState)
-  })
-  .catch((err) => {
-    console.error("Failed to connect to MongoDB. Error:", err)
-    // Log more details about the connection attempt
-    console.error("MongoDB URI:", process.env.MONGODB_URI ? "Set" : "Not set")
-    console.error("MongoDB connection state:", mongoose.connection.readyState)
-  })
+  console.log("MongoDB connected successfully")
+} catch (error) {
+  console.error("MongoDB connection failed:", error.message)
+}
 
-// Test endpoint that includes MongoDB connection status
-app.get("/test", (req, res) => {
+// Basic test route at the root
+app.get("/", (req, res) => {
   res.json({
     status: "ok",
     message: "Server is running",
+    mongoDbStatus: mongoose.connection.readyState,
+  })
+})
+
+// Test route
+app.get("/test", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Test endpoint reached",
     mongoDbStatus: mongoose.connection.readyState,
   })
 })
@@ -53,7 +55,7 @@ app.get("/test", (req, res) => {
 app.use("/users", userRoutes)
 app.use("/cars", carRoutes)
 
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
   console.error("Server Error:", err)
   res.status(500).json({
@@ -62,5 +64,8 @@ app.use((err, req, res, next) => {
   })
 })
 
-export const handler = serverless(app)
+// Export the handler with path stripping
+export const handler = serverless(app, {
+  basePath: "/.netlify/functions/server",
+})
 
