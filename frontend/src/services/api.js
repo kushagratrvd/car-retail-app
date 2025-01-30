@@ -4,7 +4,7 @@ import axios from "axios"
 const domain = window.location.hostname
 const isLocalhost = domain.includes("localhost") || domain.includes("127.0.0.1")
 
-// Set the API URL based on environment
+// Set the API URL based on environment - remove 'api' from the path
 const API_URL = isLocalhost ? "http://localhost:8888/.netlify/functions/server" : "/.netlify/functions/server"
 
 const api = axios.create({
@@ -17,7 +17,7 @@ const api = axios.create({
 // Request interceptor with detailed logging
 api.interceptors.request.use(
   (config) => {
-    console.log("Sending Request:", {
+    console.log("API Request:", {
       url: `${config.baseURL}${config.url}`,
       method: config.method,
       data: config.data,

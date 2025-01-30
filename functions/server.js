@@ -1,39 +1,46 @@
-import express from "express"
-import serverless from "serverless-http"
-import mongoose from "mongoose"
-import cors from "cors"
-import { carRoutes } from "./routes/carRoutes.js"
-import { userRoutes } from "./routes/userRoutes.js"
+const express = require("express")
+const serverless = require("serverless-http")
+const mongoose = require("mongoose")
+const cors = require("cors")
+const { carRoutes } = require("./routes/carRoutes.js")
+const { userRoutes } = require("./routes/userRoutes.js")
 
 const app = express()
 
-// Debug logging
+// Enhanced logging middleware
 app.use((req, res, next) => {
   console.log("Request received:", {
     method: req.method,
     path: req.path,
+    body: req.body,
     headers: req.headers,
+    url: req.url,
   })
   next()
 })
 
-// CORS and JSON parsing
-app.use(cors())
+// CORS configuration
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+)
+
 app.use(express.json())
 
-// MongoDB connection with detailed logging
-console.log("Attempting MongoDB connection...")
-try {
-  await mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+// MongoDB connection with enhanced error handling
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("MongoDB Connected Successfully")
   })
-  console.log("MongoDB connected successfully")
-} catch (error) {
-  console.error("MongoDB connection failed:", error.message)
-}
+  .catch((err) => {
+    console.error("MongoDB Connection Error:", err)
+  })
 
-// Basic test route at the root
+// Basic test route
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
@@ -42,20 +49,11 @@ app.get("/", (req, res) => {
   })
 })
 
-// Test route
-app.get("/test", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "Test endpoint reached",
-    mongoDbStatus: mongoose.connection.readyState,
-  })
-})
-
 // Mount routes
 app.use("/users", userRoutes)
 app.use("/cars", carRoutes)
 
-// Error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Server Error:", err)
   res.status(500).json({
@@ -64,8 +62,5 @@ app.use((err, req, res, next) => {
   })
 })
 
-// Export the handler with path stripping
-export const handler = serverless(app, {
-  basePath: "/.netlify/functions/server",
-})
+module.exports.handler = serverless(app)
 
